@@ -1,0 +1,409 @@
+/* ==========================================================================
+   rise&co — products page store grid
+   --------------------------------------------------------------------------
+   Hand-coded replacement for the product grid that the old ecommerce plugin
+   used to inject at runtime. Every value here was measured off the live page
+   at https://riseandco.com.au/products.html so the rendering matches.
+
+   Layout summary (measured at a 1280px viewport):
+     grid          flex, wrap, 16px gutters (achieved with -8px side margins)
+     card          33.333% wide, 8px padding  -> 378.7px
+     card inner    1px solid border           -> 362.7px
+     image         3:4 portrait box, cropped  -> 360.7 x 480.9
+     title         20px / 26px, weight 600
+     price         20px / 26px, weight 400
+     button        40px tall, 16px, weight 600
+
+   Columns per row (matches the old plugin's container-width breakpoints):
+     < 720px        1 column
+     720 - 1199px   2 columns
+     >= 1200px      3 columns
+   ========================================================================== */
+
+/* --- Design tokens: change these to restyle the whole grid ---------------- */
+:root {
+    --store-text:        #222222;   /* body + heading colour */
+    --store-surface:     #f2f4f4;   /* card / button background */
+    --store-border:      #c0c0c0;   /* card + button border */
+    --store-image-ratio: 133.3333%; /* 3:4 portrait; = height / width */
+    --store-gutter:      8px;       /* half the gap between cards */
+}
+
+/* --- Store wrapper -------------------------------------------------------- */
+/* The old grid sat 10px inside the Bootstrap column on every breakpoint
+   (measured: column content 1140px -> store 1120px at a 1280px viewport).
+   This padding reproduces that inset. */
+.store {
+    padding: 0 10px;
+    color: var(--store-text);
+    text-align: left;
+}
+
+/* --- Category heading block ----------------------------------------------
+   Measured vertical rhythm on the original:
+     title            39px tall, 5px margin below
+     description      10px padding top and bottom (only some categories have one)
+     -> grid          starts 32px below the heading block
+     -> next category starts 80px below the previous grid
+   -------------------------------------------------------------------------- */
+.store-category {
+    margin-bottom: 80px;
+}
+
+.store-category:last-child {
+    margin-bottom: 0;
+}
+
+/* Headings step up a size on wide screens, matching the original. */
+/* The 5px below the title is padding, not margin: an adjacent margin would
+   collapse into the grid's 32px top margin and swallow the gap. */
+.store-category__title {
+    margin: 0;
+    padding: 0 0 5px;
+    font-family: "Roboto Mono", monospace;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 36.4px;
+    color: var(--store-text);
+    text-align: center;
+    text-transform: none;
+}
+
+.store-category__description {
+    margin: 0;
+    padding: 10px 0;
+    font-size: 16px;
+    line-height: 1.4;
+    color: var(--store-text);
+    text-align: center;
+}
+
+/* The description text is capped at 720px and centred, so on wide screens it
+   wraps in the same place as the original rather than running the full width.
+   The theme's default paragraph margin is cleared for the same reason. */
+.store-category__description p {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+@media (min-width: 1200px) {
+    .store-category__title {
+        font-size: 30px;
+        line-height: 39px;
+    }
+
+    .store-category__description {
+        font-size: 18px;
+    }
+}
+
+/* --- Product grid --------------------------------------------------------- */
+.store-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 32px calc(var(--store-gutter) * -1) 0;  /* 32px below the heading */
+    padding: 0;
+    list-style: none;
+}
+
+.store-product {
+    display: flex;               /* lets the inner card stretch to equal height */
+    width: 100%;                 /* 1 column by default (mobile first) */
+    padding: var(--store-gutter);
+    margin: 0;
+}
+
+@media (min-width: 720px) {
+    .store-product { width: 50%; }
+}
+
+@media (min-width: 1200px) {
+    .store-product { width: 33.3333%; }
+}
+
+/* --- Product card --------------------------------------------------------- */
+.store-product__card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    border: 1px solid var(--store-border);
+    background: var(--store-surface);   /* the pale panel behind title/price/button */
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Image sits in a fixed 3:4 box and is cropped, exactly as the old grid did.
+   padding-top on the wrapper reserves the height before the image loads, so
+   the page does not jump about while images stream in. */
+.store-product__image {
+    position: relative;
+    width: 100%;
+    padding-top: var(--store-image-ratio);
+    overflow: hidden;
+}
+
+.store-product__image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;           /* crop, never squash */
+    display: block;
+}
+
+.store-product__title {
+    margin: 18px 0 0;            /* 18px gap below the image, measured */
+    padding: 0 6px;
+    font-family: "Roboto Mono", monospace;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 26px;
+    color: var(--store-text);
+    text-align: center;
+    text-transform: none;
+}
+
+.store-product__price {
+    margin: 0;
+    padding: 0 6px;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 26px;
+    color: var(--store-text);
+    text-align: center;
+}
+
+.store-product__actions {
+    margin-top: auto;            /* pins the button to the bottom of the card */
+    padding: 9px 0 21.6px;       /* measured: 9px above, 21.6px below */
+    text-align: center;
+}
+
+/* --- Button --------------------------------------------------------------- */
+/* The original used two button sizes: the large touch-friendly one on phones
+   (< 515px) and on wide desktops (>= 1200px), and a compact one in between.
+   Sizes and paddings below are the measured values. */
+.store-button {
+    display: inline-block;
+    height: 40px;
+    max-width: 100%;
+    padding: 0 28.8px;
+    border: 1px solid var(--store-border);
+    border-radius: 3px;
+    background: var(--store-surface);
+    font-family: "Roboto Mono", monospace;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 38px;
+    color: var(--store-text);
+    text-align: center;
+    text-transform: none;
+    letter-spacing: normal;
+    text-decoration: none;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -webkit-appearance: none;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+
+.store-button:hover,
+.store-button:focus {
+    background: #e8ebeb;
+    border-color: #a9a9a9;
+    color: var(--store-text);
+    text-decoration: none;
+}
+
+/* Compact button between 515px and 1199px. */
+@media (min-width: 515px) and (max-width: 1199px) {
+    .store-product__actions .store-button {
+        height: 32px;
+        padding: 0 25.2px;
+        font-size: 14px;
+        line-height: 30px;
+    }
+}
+
+/* ==========================================================================
+   Product detail overlay
+   --------------------------------------------------------------------------
+   The old plugin swapped the whole grid out for a product page with a photo
+   gallery, description and an "Order" button wired to its cart. There is no
+   cart on a static page, so this reproduces the part that carries the content
+   - the gallery and the description - as a self-contained overlay.
+   ========================================================================== */
+.store-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2000;
+    display: none;
+    background: rgba(0, 0, 0, .72);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.store-modal.is-open {
+    display: block;
+}
+
+.store-modal__dialog {
+    position: relative;
+    max-width: 940px;
+    margin: 40px auto;
+    padding: 28px;
+    background: var(--store-surface);
+    border: 1px solid var(--store-border);
+}
+
+.store-modal__close {
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: "Roboto Mono", monospace;
+    font-size: 30px;
+    line-height: 40px;
+    color: var(--store-text);
+    cursor: pointer;
+}
+
+.store-modal__close:hover { opacity: .6; }
+
+.store-modal__title {
+    margin: 0 40px 4px 0;
+    font-family: "Roboto Mono", monospace;
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 39px;
+    color: var(--store-text);
+}
+
+.store-modal__breadcrumb {
+    margin: 0 0 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.store-modal__body {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -14px;
+}
+
+.store-modal__gallery,
+.store-modal__info {
+    width: 100%;
+    padding: 0 14px;
+}
+
+@media (min-width: 720px) {
+    .store-modal__gallery { width: 50%; }
+    .store-modal__info    { width: 50%; }
+}
+
+.store-gallery__main {
+    position: relative;
+    width: 100%;
+    padding-top: 100%;           /* the detail gallery is square, not 3:4 */
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--store-border);
+}
+
+.store-gallery__main img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.store-gallery__thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 10px -4px 0;
+    padding: 0;
+    list-style: none;
+}
+
+.store-gallery__thumb {
+    width: 25%;
+    padding: 4px;
+}
+
+.store-gallery__thumb button {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding-top: 100%;
+    border: 1px solid var(--store-border);
+    background: #fff;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.store-gallery__thumb button img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.store-gallery__thumb button.is-active {
+    border-color: var(--store-text);
+    border-width: 2px;
+}
+
+.store-modal__price {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--store-text);
+}
+
+.store-modal__stock {
+    margin: 0 0 18px;
+    font-size: 14px;
+    color: #3c763d;
+}
+
+.store-modal__section-title {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--store-text);
+}
+
+.store-modal__description {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--store-text);
+}
+
+.store-modal__description p { margin: 0 0 12px; }
+.store-modal__description p:last-child { margin-bottom: 0; }
+
+/* Stops the page behind the overlay from scrolling while it is open. */
+body.store-modal-open {
+    overflow: hidden;
+}
+
+@media (max-width: 719px) {
+    .store-modal__dialog { margin: 0; padding: 20px; min-height: 100%; }
+    .store-modal__title  { font-size: 24px; line-height: 32px; }
+    .store-modal__info   { margin-top: 20px; }
+}
